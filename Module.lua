@@ -793,20 +793,31 @@ function Material.Load(Config)
 	TitleText.Parent = TitleBar
 
 	TitleText.MouseButton1Down:Connect(function()
-		local Mx, My = Mouse.X, Mouse.Y
-		local MouseMove, MouseKill
-		MouseMove = Mouse.Move:Connect(function()
-			local nMx, nMy = Mouse.X, Mouse.Y
-			local Dx, Dy = nMx - Mx, nMy - My
-			MainFrame.Position = MainFrame.Position + UDim2.fromOffset(Dx, Dy)
-			Mx, My = nMx, nMy
-		end)
-		MouseKill = InputService.InputEnded:Connect(function(UserInput)
-			if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
-				MouseMove:Disconnect()
-				MouseKill:Disconnect()
-			end
-		end)
+		local UIS = game:GetService('UserInputService')
+	local frame = MainFrame
+	local dragToggle = nil
+	local dragSpeed = 0.25
+	local dragStart = nil
+	local startPos = nil
+ 
+	local function updateInput(input)
+		local delta = input.Position - dragStart
+		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		game:GetService('TweenService'):Create(frame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+	end
+ 
+	frame.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+			dragToggle = true
+			dragStart = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false
+				end
+			end)
+		end
 	end)
 
 	local MinimiseButton = Objects.new("SmoothButton")
